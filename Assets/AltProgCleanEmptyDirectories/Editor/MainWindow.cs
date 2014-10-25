@@ -3,6 +3,7 @@ using UnityEditor;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.IO;
 
 namespace AltProg.CleanEmptyDir
@@ -93,34 +94,47 @@ namespace AltProg.CleanEmptyDir
 
             var assetDir = new DirectoryInfo(Application.dataPath);
 
-            WalkDirectoryTree(assetDir, ( dirInfo ) =>
+            WalkDirectoryTree(assetDir, ( dirInfo, areSubDirsEmpty ) =>
             {
-                if (IsEmptyDirectory(dirInfo))
+				bool isDirEmpty = areSubDirsEmpty && DirHasNoFile (dirInfo);
+				if ( isDirEmpty )
                     emptyDirs.Add(dirInfo);
+				return isDirEmpty;
             });
         }
 
-        static void WalkDirectoryTree(DirectoryInfo root, Action<DirectoryInfo> job)
+		// return: Is this directory empty?
+		delegate bool IsEmptyDirectory( DirectoryInfo dirInfo, bool areSubDirsEmpty );
+
+		// return: Is this directory empty?
+        static bool WalkDirectoryTree(DirectoryInfo root, IsEmptyDirectory pred)
         {
-            job(root);
+            DirectoryInfo[] subDirs = root.GetDirectories();
 
-            DirectoryInfo[] subDirs = null;
-
-            subDirs = root.GetDirectories();
-
+			bool areSubDirsEmpty = true;
             foreach (DirectoryInfo dirInfo in subDirs)
             {
-                WalkDirectoryTree(dirInfo, job);
+				if ( false == WalkDirectoryTree(dirInfo, pred) )
+					areSubDirsEmpty = false;
             }
+
+            bool isRootEmpty = pred(root, areSubDirsEmpty);
+			return isRootEmpty;
         }
 
-        static bool IsEmptyDirectory(DirectoryInfo dirInfo)
+        static bool DirHasNoFile(DirectoryInfo dirInfo)
         {
             FileInfo[] files = null;
 
             try
             {
                 files = dirInfo.GetFiles("*.*");
+				files = files.Where ( x => ! IsMetaFile(x.Name)).ToArray ();
+
+				foreach( var file in files )
+				{
+					Debug.Log ( string.Format ( "dir:{0}, file:{1}", dirInfo.Name, file.Name ) );
+				}
             } catch (UnauthorizedAccessException)
             {
             } catch (DirectoryNotFoundException)
@@ -147,6 +161,11 @@ namespace AltProg.CleanEmptyDir
             // TODO: remove ending slash
             return dirPath + ".meta";
         }
+
+		static bool IsMetaFile(string path)
+		{
+			return path.EndsWith(".meta");
+		}
 
 
     }
