@@ -25,13 +25,18 @@ namespace AltProg.CleanEmptyDir
             EditorGUILayout.BeginVertical();
             {
 
-                if (GUILayout.Button("Find Empty Dirs"))
-                {
-                    FillEmptyDirList();
-                }
+				EditorGUILayout.BeginHorizontal();
+				{
+	                if (GUILayout.Button("Find Empty Dirs"))
+	                {
+	                    FillEmptyDirList();
+	                }
 
-                if ( emptyDirs != null && emptyDirs.Count > 0 )
-                {
+	                if ( emptyDirs == null || emptyDirs.Count == 0 )
+	                {
+						GUI.enabled = false;
+					}
+
 					Color old = GUI.color;
 					GUI.color = Color.red;
                     if (GUILayout.Button("Delete All"))
@@ -40,7 +45,12 @@ namespace AltProg.CleanEmptyDir
 						AssetDatabase.Refresh();
                     }
 					GUI.color = old;
-                }
+
+					GUI.enabled = true;
+				}
+				EditorGUILayout.EndHorizontal();	
+
+
 
                 if (emptyDirs != null)
                 {
