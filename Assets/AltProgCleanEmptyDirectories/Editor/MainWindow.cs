@@ -32,10 +32,14 @@ namespace AltProg.CleanEmptyDir
 
                 if ( emptyDirs != null && emptyDirs.Count > 0 )
                 {
+					Color old = GUI.color;
+					GUI.color = Color.red;
                     if (GUILayout.Button("Delete All"))
                     {
                         DeleteAllEmptyDirAndMeta();
+						AssetDatabase.Refresh();
                     }
+					GUI.color = old;
                 }
 
                 if (emptyDirs != null)
@@ -130,16 +134,10 @@ namespace AltProg.CleanEmptyDir
             {
                 files = dirInfo.GetFiles("*.*");
 				files = files.Where ( x => ! IsMetaFile(x.Name)).ToArray ();
-
-				foreach( var file in files )
-				{
-					Debug.Log ( string.Format ( "dir:{0}, file:{1}", dirInfo.Name, file.Name ) );
-				}
-            } catch (UnauthorizedAccessException)
+            } 
+			catch (Exception)
             {
-            } catch (DirectoryNotFoundException)
-            {
-            }
+            } 
 
             return files == null || files.Length == 0;
         }
