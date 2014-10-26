@@ -12,7 +12,10 @@ namespace AltProg.CleanEmptyDir
     {
         List<DirectoryInfo> emptyDirs;
         Vector2 scrollPosition;
-		bool lastCleanOnSave;
+        bool lastCleanOnSave;
+        string delayedNotiMsg;
+
+        bool hasNoEmptyDir { get { return emptyDirs == null || emptyDirs.Count == 0; } }
 
         [MenuItem("Window/AltProg Clean Empty Dir")]
         public static void ShowWindow()
@@ -21,54 +24,69 @@ namespace AltProg.CleanEmptyDir
             w.title = "Clean";
         }
 
-		void OnEnable()
-		{
+        void OnEnable()
+        {
             lastCleanOnSave = Core.CleanOnSave;
-		}
+            Core.OnAutoClean += Core_OnAutoClean;
+            ShowNotification( new GUIContent( "Click 'Find Empty Dirs' Button." ) );
+        }
 
-		void OnDisable()
-		{
+        void OnDisable()
+        {
             Core.CleanOnSave = lastCleanOnSave;
-		}
+            Core.OnAutoClean -= Core_OnAutoClean;
+        }
+
+        void Core_OnAutoClean()
+        {
+            delayedNotiMsg = "Cleaned on Save";
+        }
 
         void OnGUI()
         {
+            if ( delayedNotiMsg != null )
+            {
+                ShowNotification( new GUIContent( delayedNotiMsg ) );
+                delayedNotiMsg = null;
+            }
+
             EditorGUILayout.BeginVertical();
             {
-				bool cleanOnSave = GUILayout.Toggle ( lastCleanOnSave, "Clean Empty Dirs Automatically On Save" );
-				if ( cleanOnSave != lastCleanOnSave )
+                EditorGUILayout.BeginHorizontal();
                 {
-					lastCleanOnSave = cleanOnSave;
-                    Core.CleanOnSave = cleanOnSave;
-				}
-
-				EditorGUILayout.BeginHorizontal();
-				{
-	                if (GUILayout.Button("Find Empty Dirs"))
-	                {
-	                    Core.FillEmptyDirList( out emptyDirs );
-	                }
-
-	                if ( emptyDirs == null || emptyDirs.Count == 0 )
-	                {
-						GUI.enabled = false;
-					}
-
-					Color old = GUI.color;
-					GUI.color = Color.red;
-                    if (GUILayout.Button("Delete All"))
+                    if (GUILayout.Button("Find Empty Dirs"))
                     {
-                        Core.DeleteAllEmptyDirAndMeta( ref emptyDirs );
+                        Core.FillEmptyDirList(out emptyDirs);
+
+                        if (hasNoEmptyDir)
+                        {
+                            ShowNotification( new GUIContent( "No Empty Directory" ) );
+                        }
+                        else
+                        {
+                            RemoveNotification();
+                        }
                     }
-					GUI.color = old;
 
-					GUI.enabled = true;
-				}
-				EditorGUILayout.EndHorizontal();	
+                    if ( ColorButton( "Delete All", ! hasNoEmptyDir, Color.red ) )
+                    {
+                        Core.DeleteAllEmptyDirAndMeta(ref emptyDirs);
+                        ShowNotification( new GUIContent( "Deleted All" ) );
+                    }
+                }
+                EditorGUILayout.EndHorizontal();    
 
 
+                bool cleanOnSave = GUILayout.Toggle(lastCleanOnSave, "Clean Empty Dirs Automatically On Save");
+                if (cleanOnSave != lastCleanOnSave)
+                {
+                    lastCleanOnSave = cleanOnSave;
+                    Core.CleanOnSave = cleanOnSave;
+                }
 
-                if (emptyDirs != null)
+                GUILayout.Box("", GUILayout.ExpandWidth(true), GUILayout.Height(1));
+
+                if ( ! hasNoEmptyDir )
                 {
                     scrollPosition = EditorGUILayout.BeginScrollView(scrollPosition, GUILayout.ExpandWidth(true));
                     {
@@ -77,7 +95,7 @@ namespace AltProg.CleanEmptyDir
 
                             foreach (var dirInfo in emptyDirs)
                             {
-                                GUILayout.Label( Core.GetRelativePath( dirInfo.FullName, Application.dataPath ) );
+                                GUILayout.Label(Core.GetRelativePath(dirInfo.FullName, Application.dataPath));
                             }
 
                         }
@@ -92,9 +110,31 @@ namespace AltProg.CleanEmptyDir
         }
 
 
+        void ColorLabel(string title, Color color)
+        {
+            Color oldColor = GUI.color;
+            //GUI.color = color;
+            GUI.enabled = false;
+            GUILayout.Label(title);
+            GUI.enabled = true;;
+            GUI.color = oldColor;
+        }
+        
+        bool ColorButton(string title, bool enabled, Color color)
+        {
+            bool oldEnabled = GUI.enabled;
+            Color oldColor = GUI.color;
 
+            GUI.enabled = enabled;
+            GUI.color = color;
 
+            bool ret = GUILayout.Button(title);
 
+            GUI.enabled = oldEnabled;
+            GUI.color = oldColor;
+            
+            return ret;
+        }
     }
 
 }

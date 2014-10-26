@@ -14,6 +14,8 @@ namespace AltProg.CleanEmptyDir
         const string CLEAN_ON_SAVE_KEY = "k1";
         static bool cleanOnSave;
 
+        public static event Action OnAutoClean;
+
         // UnityEditor.AssetModificationProcessor
         public static string[] OnWillSaveAssets(string[] paths)
         {
@@ -21,7 +23,15 @@ namespace AltProg.CleanEmptyDir
             {
                 List<DirectoryInfo> emptyDirs;
                 FillEmptyDirList( out emptyDirs );
-                DeleteAllEmptyDirAndMeta( ref emptyDirs );
+                if ( emptyDirs != null && emptyDirs.Count > 0 )
+                {
+                    DeleteAllEmptyDirAndMeta( ref emptyDirs );
+
+                    Debug.Log( "[Clean] Cleaned Empty Directories on Save" );
+
+                    if ( OnAutoClean != null )
+                        OnAutoClean();
+                }
             }
 
             return paths;
