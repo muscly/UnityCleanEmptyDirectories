@@ -22,7 +22,6 @@ namespace AltProg.CleanEmptyDir
                 List<DirectoryInfo> emptyDirs;
                 FillEmptyDirList( out emptyDirs );
                 DeleteAllEmptyDirAndMeta( ref emptyDirs );
-                AssetDatabase.Refresh();
             }
 
             return paths;
@@ -46,24 +45,26 @@ namespace AltProg.CleanEmptyDir
         {
             foreach (var dirInfo in emptyDirs)
             {
-                try
-                {
-                    dirInfo.Delete();
-                }
-                catch( Exception e )
-                {
-                    Debug.LogException ( e );
-                }
+                AssetDatabase.MoveAssetToTrash( GetRelativePathFromCd( dirInfo.FullName ) );
 
-                var metaFilePath = GetMetaFilePath( dirInfo.FullName );
-                try
-                {
-                    File.Delete( metaFilePath );
-                }
-                catch( Exception e )
-                {
-                    Debug.LogException ( e );
-                }
+//                try
+//                {
+//                    dirInfo.Delete();
+//                }
+//                catch( Exception e )
+//                {
+//                    Debug.LogException ( e );
+//                }
+//
+//                var metaFilePath = GetMetaFilePath( dirInfo.FullName );
+//                try
+//                {
+//                    File.Delete( metaFilePath );
+//                }
+//                catch( Exception e )
+//                {
+//                    Debug.LogException ( e );
+//                }
             }
 
             emptyDirs = null;
@@ -118,6 +119,11 @@ namespace AltProg.CleanEmptyDir
             } 
 
             return files == null || files.Length == 0;
+        }
+
+        static string GetRelativePathFromCd(string filespec)
+        {
+            return GetRelativePath( filespec, Directory.GetCurrentDirectory() );
         }
 
         public static string GetRelativePath(string filespec, string folder)

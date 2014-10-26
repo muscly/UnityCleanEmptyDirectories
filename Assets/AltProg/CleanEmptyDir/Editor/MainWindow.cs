@@ -59,7 +59,6 @@ namespace AltProg.CleanEmptyDir
                     if (GUILayout.Button("Delete All"))
                     {
                         Core.DeleteAllEmptyDirAndMeta( ref emptyDirs );
-						AssetDatabase.Refresh();
                     }
 					GUI.color = old;
 
