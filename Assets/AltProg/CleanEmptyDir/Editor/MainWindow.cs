@@ -14,6 +14,8 @@ namespace AltProg.CleanEmptyDir
         Vector2 scrollPosition;
         bool lastCleanOnSave;
         string delayedNotiMsg;
+        UpdateChecker.Message updateMsg;
+        GUIStyle updateMsgStyle;
 
         bool hasNoEmptyDir { get { return emptyDirs == null || emptyDirs.Count == 0; } }
 
@@ -30,13 +32,22 @@ namespace AltProg.CleanEmptyDir
         {
             lastCleanOnSave = Core.CleanOnSave;
             Core.OnAutoClean += Core_OnAutoClean;
+            UpdateChecker.OnDone += UpdateChecker_OnDone;
+
+            UpdateChecker.Check();
             delayedNotiMsg = "Click 'Find Empty Dirs' Button.";
         }
-
+        
         void OnDisable()
         {
             Core.CleanOnSave = lastCleanOnSave;
             Core.OnAutoClean -= Core_OnAutoClean;
+            UpdateChecker.OnDone -= UpdateChecker_OnDone;
+        }
+
+        void UpdateChecker_OnDone( UpdateChecker.Message updateMsg )
+        {
+            this.updateMsg = updateMsg;
         }
 
         void Core_OnAutoClean()
@@ -54,6 +65,21 @@ namespace AltProg.CleanEmptyDir
 
             EditorGUILayout.BeginVertical();
             {
+                if ( null != updateMsg )
+                {
+                    if ( updateMsgStyle == null )
+                    {
+                        updateMsgStyle = new GUIStyle( "CN EntryInfo" );
+                        updateMsgStyle.alignment = TextAnchor.MiddleLeft;
+                        updateMsgStyle.richText = true;
+                    }
+
+                    if ( GUILayout.Button( updateMsg.Msg , updateMsgStyle) )
+                    {
+                        Application.OpenURL( updateMsg.Link );
+                    }
+                }
+
                 EditorGUILayout.BeginHorizontal();
                 {
                     if (GUILayout.Button("Find Empty Dirs"))
@@ -69,6 +95,9 @@ namespace AltProg.CleanEmptyDir
                             RemoveNotification();
                         }
                     }
+
+
+
 
                     if ( ColorButton( "Delete All", ! hasNoEmptyDir, Color.red ) )
                     {
