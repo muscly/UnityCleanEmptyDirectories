@@ -123,7 +123,11 @@ namespace AltProg.CleanEmptyDir
                     {
                         EditorGUILayout.BeginVertical();
                         {
+#if UNITY_4_6   // and higher
                             GUIContent folderContent = EditorGUIUtility.IconContent("Folder Icon");
+#else
+                            GUIContent folderContent = new GUIContent();
+#endif
 
                             foreach (var dirInfo in emptyDirs)
                             {
