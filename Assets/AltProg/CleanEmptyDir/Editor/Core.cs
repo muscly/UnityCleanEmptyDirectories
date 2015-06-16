@@ -122,7 +122,7 @@ namespace AltProg.CleanEmptyDir
             try
             {
                 files = dirInfo.GetFiles("*.*");
-                files = files.Where ( x => ! IsMetaFile(x.Name)).ToArray ();
+                files = files.Where ( x => ! IsMetaFile(x.Name) && ! IsSystemFile(x.Name)).ToArray ();
             } 
             catch (Exception)
             {
@@ -157,6 +157,11 @@ namespace AltProg.CleanEmptyDir
         static bool IsMetaFile(string path)
         {
             return path.EndsWith(".meta");
+        }
+
+        static bool IsSystemFile(string path)
+        {
+            return path.StartsWith(".");
         }
     }
 }
