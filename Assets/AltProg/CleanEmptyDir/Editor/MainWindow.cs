@@ -19,13 +19,19 @@ namespace AltProg.CleanEmptyDir
 
         bool hasNoEmptyDir { get { return emptyDirs == null || emptyDirs.Count == 0; } }
 
-        const float DIR_LABEL_HEIGHT = 21;
+        const float DIR_LABEL_WIDTH_RATIO = 0.75f;
+
+        List<UnityEngine.Object> dirObjs = new List<UnityEngine.Object>();
 
         [MenuItem("Window/AltProg Clean Empty Dir")]
         public static void ShowWindow()
         {
             var w = GetWindow<MainWindow>();
+#if UNITY_5_3_OR_NEWER   // and higher
+            w.titleContent = new GUIContent( "Clean" );
+#else
             w.title = "Clean";
+#endif
         }
 
         void OnEnable()
@@ -86,6 +92,8 @@ namespace AltProg.CleanEmptyDir
                     {
                         Core.FillEmptyDirList(out emptyDirs);
 
+                        dirObjs.Clear();
+
                         if (hasNoEmptyDir)
                         {
                             ShowNotification( new GUIContent( "No Empty Directory" ) );
@@ -101,6 +109,8 @@ namespace AltProg.CleanEmptyDir
 
                     if ( ColorButton( "Delete All", ! hasNoEmptyDir, Color.red ) )
                     {
+                        dirObjs.Clear();
+
                         Core.DeleteAllEmptyDirAndMeta(ref emptyDirs);
                         ShowNotification( new GUIContent( "Deleted All" ) );
                     }
@@ -119,33 +129,38 @@ namespace AltProg.CleanEmptyDir
 
                 if ( ! hasNoEmptyDir )
                 {
+                    if (GUILayout.Button("Show All Empty Dirs on 'Project'"))
+                    {
+                        Selection.objects = dirObjs.ToArray();
+                    }
+                    
                     scrollPosition = EditorGUILayout.BeginScrollView(scrollPosition, GUILayout.ExpandWidth(true));
                     {
                         EditorGUILayout.BeginVertical();
                         {
-#if UNITY_4_6   // and higher
-                            GUIContent folderContent = EditorGUIUtility.IconContent("Folder Icon");
-#else
-                            GUIContent folderContent = new GUIContent();
-#endif
-
                             foreach (var dirInfo in emptyDirs)
                             {
-                                UnityEngine.Object assetObj = Resources.LoadAssetAtPath( "Assets", typeof(UnityEngine.Object) );
+                                UnityEngine.Object assetObj = AssetDatabase.LoadAssetAtPath( "Assets", typeof(UnityEngine.Object) );
                                 if ( null != assetObj )
                                 {
-                                    folderContent.text = Core.GetRelativePath(dirInfo.FullName, Application.dataPath);
-                                    GUILayout.Label( folderContent, GUILayout.Height( DIR_LABEL_HEIGHT ) );
+                                    GUILayout.BeginHorizontal();
+                                    {
+                                        string relativeDirPath = string.Format( "Assets\\{0}", Core.GetRelativePath(dirInfo.FullName, Application.dataPath) );
+                                        GUILayout.Label( relativeDirPath, GUILayout.Width( DIR_LABEL_WIDTH_RATIO * Screen.width ) );
+                                        UnityEngine.Object dirObj = AssetDatabase.LoadAssetAtPath( relativeDirPath, typeof(UnityEngine.Object) );
+                                        EditorGUILayout.ObjectField( dirObj, typeof(UnityEngine.Object), false );
+
+                                        dirObjs.Add( dirObj );
+                                    }
+                                    GUILayout.EndHorizontal();
                                 }
                             }
-
                         }
                         EditorGUILayout.EndVertical();
 
                     }
                     EditorGUILayout.EndScrollView();
                 }
-
             }
             EditorGUILayout.EndVertical();
         }
