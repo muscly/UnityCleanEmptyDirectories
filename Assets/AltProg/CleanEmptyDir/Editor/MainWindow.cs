@@ -25,7 +25,11 @@ namespace AltProg.CleanEmptyDir
         public static void ShowWindow()
         {
             var w = GetWindow<MainWindow>();
+#if UNITY_5_3_OR_NEWER   // and higher
+            w.titleContent = new GUIContent( "Clean" );
+#else
             w.title = "Clean";
+#endif
         }
 
         void OnEnable()
