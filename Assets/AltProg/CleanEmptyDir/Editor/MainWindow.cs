@@ -14,7 +14,6 @@ namespace AltProg.CleanEmptyDir
         Vector2 scrollPosition;
         bool lastCleanOnSave;
         string delayedNotiMsg;
-        UpdateChecker.Message updateMsg;
         GUIStyle updateMsgStyle;
 
         bool hasNoEmptyDir { get { return emptyDirs == null || emptyDirs.Count == 0; } }
@@ -25,16 +24,14 @@ namespace AltProg.CleanEmptyDir
         public static void ShowWindow()
         {
             var w = GetWindow<MainWindow>();
-            w.title = "Clean";
+            w.titleContent = new GUIContent("Clean");
         }
 
         void OnEnable()
         {
             lastCleanOnSave = Core.CleanOnSave;
             Core.OnAutoClean += Core_OnAutoClean;
-            UpdateChecker.OnDone += UpdateChecker_OnDone;
 
-            UpdateChecker.Check();
             delayedNotiMsg = "Click 'Find Empty Dirs' Button.";
         }
         
@@ -42,12 +39,6 @@ namespace AltProg.CleanEmptyDir
         {
             Core.CleanOnSave = lastCleanOnSave;
             Core.OnAutoClean -= Core_OnAutoClean;
-            UpdateChecker.OnDone -= UpdateChecker_OnDone;
-        }
-
-        void UpdateChecker_OnDone( UpdateChecker.Message updateMsg )
-        {
-            this.updateMsg = updateMsg;
         }
 
         void Core_OnAutoClean()
@@ -65,21 +56,6 @@ namespace AltProg.CleanEmptyDir
 
             EditorGUILayout.BeginVertical();
             {
-                if ( null != updateMsg )
-                {
-                    if ( updateMsgStyle == null )
-                    {
-                        updateMsgStyle = new GUIStyle( "CN EntryInfo" );
-                        updateMsgStyle.alignment = TextAnchor.MiddleLeft;
-                        updateMsgStyle.richText = true;
-                    }
-
-                    if ( GUILayout.Button( updateMsg.Msg , updateMsgStyle) )
-                    {
-                        Application.OpenURL( updateMsg.Link );
-                    }
-                }
-
                 EditorGUILayout.BeginHorizontal();
                 {
                     if (GUILayout.Button("Find Empty Dirs"))
@@ -95,8 +71,6 @@ namespace AltProg.CleanEmptyDir
                             RemoveNotification();
                         }
                     }
-
-
 
 
                     if ( ColorButton( "Delete All", ! hasNoEmptyDir, Color.red ) )
@@ -131,7 +105,7 @@ namespace AltProg.CleanEmptyDir
 
                             foreach (var dirInfo in emptyDirs)
                             {
-                                UnityEngine.Object assetObj = Resources.LoadAssetAtPath( "Assets", typeof(UnityEngine.Object) );
+                                UnityEngine.Object assetObj = AssetDatabase.LoadAssetAtPath( "Assets", typeof(UnityEngine.Object) );
                                 if ( null != assetObj )
                                 {
                                     folderContent.text = Core.GetRelativePath(dirInfo.FullName, Application.dataPath);
@@ -151,17 +125,17 @@ namespace AltProg.CleanEmptyDir
         }
 
 
-        void ColorLabel(string title, Color color)
+        void ColorLabel(string label, Color color)
         {
             Color oldColor = GUI.color;
             //GUI.color = color;
             GUI.enabled = false;
-            GUILayout.Label(title);
+            GUILayout.Label(label);
             GUI.enabled = true;;
             GUI.color = oldColor;
         }
         
-        bool ColorButton(string title, bool enabled, Color color)
+        bool ColorButton(string label, bool enabled, Color color)
         {
             bool oldEnabled = GUI.enabled;
             Color oldColor = GUI.color;
@@ -169,7 +143,7 @@ namespace AltProg.CleanEmptyDir
             GUI.enabled = enabled;
             GUI.color = color;
 
-            bool ret = GUILayout.Button(title);
+            bool ret = GUILayout.Button(label);
 
             GUI.enabled = oldEnabled;
             GUI.color = oldColor;
