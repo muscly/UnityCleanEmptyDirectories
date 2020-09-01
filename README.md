@@ -9,5 +9,5 @@ You can also install this asset from the [Asset Store](http://u3d.as/content/alt
 Add this line to your `Packages/manifest.json`
 
 ```
-"com.altprog.clean-empty-directories": "https://github.com/siberder/UnityCleanEmptyDirectories#upm"
+"com.altprog.clean-empty-directories": "https://github.com/siberder/UnityCleanEmptyDirectories.git#upm"
 ```
