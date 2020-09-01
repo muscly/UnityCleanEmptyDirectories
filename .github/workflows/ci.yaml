@@ -16,4 +16,4 @@ jobs:
         git subtree split -P "$PKG_ROOT" -b upm
         git push -u origin upm
       env:
-        PKG_ROOT: Assets\
+        PKG_ROOT: Assets/
