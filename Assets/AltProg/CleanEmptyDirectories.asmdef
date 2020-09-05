@@ -1,5 +1,5 @@
 {
-    "name": "Runtime",
+    "name": "CleanEmptyDirectories",
     "references": [],
     "includePlatforms": [
         "Editor"
