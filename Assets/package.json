@@ -1,0 +1,14 @@
+{
+  "name": "com.altprog.clean-empty-directories",
+  "displayName": "Clean Empty Directories",
+  "version": "1.0.0",
+  "unity": "2019.4",
+  "description": "Find and delete empty directories in your project",
+  "keywords": [ "folders", "clean", "meta" ],
+  "category": "editor extensions",
+  "dependencies": {},
+  "author": {
+    "name": "muscly",
+    "url": "https://github.com/muscly/UnityCleanEmptyDirectories"
+  }
+}
